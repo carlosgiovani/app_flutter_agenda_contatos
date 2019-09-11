@@ -37,7 +37,7 @@ class ContactHelper {
   //Função para iniciar o DB - asyn e await prq vai esperar retornar o caminho
   Future<Database> initDb() async {
     final databasesPath = await getDatabasesPath(); //pega o caminho do db
-    final path = join(databasesPath, "contacts.db"); //pega o caminho e junta com o nome do banco
+    final path = join(databasesPath, "contactsnew.db"); //pega o caminho e junta com o nome do banco
 
     //Cria tabela no db
     return await openDatabase(path, version: 1, onCreate: (Database db, int newerVersion) async {
