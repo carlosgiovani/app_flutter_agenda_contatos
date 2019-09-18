@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:agenda_contatos/helpers/contact_helper.dart';
+import 'package:agenda_contatos/ui/contact_page.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,11 +17,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    helper.getAllContact().then((list){
-      setState(() {
-        contacts = list;
-      });
-    });
+
+    _getAllContacts();
   }
 
   @override
@@ -33,7 +31,9 @@ class _HomePageState extends State<HomePage> {
       ),
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
-        onPressed: (){},
+        onPressed: (){
+          _showContactPage();
+        },
         child: Icon(Icons.add),
         backgroundColor: Colors.blueAccent,
       ),
@@ -96,7 +96,33 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
+      //Passando o contato clicado para tela de edição
+      onTap: (){
+        _showContactPage(contact: contacts[index]);
+      },
     );
   }
+  // Função para chamar a tela de edição/criação de contatos(contact_page) e,
+  // enviar e receber contatos
+  void _showContactPage({Contact contact}) async{
+    final recContact = await Navigator.push(context,
+        MaterialPageRoute(builder: (context) => ContactPage(contact: contact,))
+    );
+    if(recContact != null){
+      if(contact != null){
+        await helper.updateContact(recContact);
+      } else{
+        await helper.saveContact(recContact, contact);
+      }
+      _getAllContacts();
+    }
+  }
 
+  void _getAllContacts(){
+    helper.getAllContact().then((list){
+      setState(() {
+        contacts = list;
+      });
+    });
+  }
 }
