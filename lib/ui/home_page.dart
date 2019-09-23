@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:agenda_contatos/helpers/contact_helper.dart';
 import 'package:agenda_contatos/ui/contact_page.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+enum OrderOptions {orderaz, orderza}
 
 class HomePage extends StatefulWidget {
   @override
@@ -28,6 +31,22 @@ class _HomePageState extends State<HomePage> {
         title: Text("Contatos"),
         backgroundColor: Colors.blueAccent,
         centerTitle: true,
+        actions: <Widget>[
+          //menu tipo popover do ionic
+          PopupMenuButton<OrderOptions>(
+            itemBuilder: (context) => <PopupMenuEntry<OrderOptions>>[
+              const PopupMenuItem<OrderOptions>(
+                child: Text("Ordernar de A-Z"),
+                value: OrderOptions.orderaz,
+              ),
+              const PopupMenuItem<OrderOptions>(
+                child: Text("Ordernar de Z-A"),
+                value: OrderOptions.orderza,
+              ),
+            ],
+            onSelected: _orderList,
+          )
+        ],
       ),
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
@@ -64,7 +83,8 @@ class _HomePageState extends State<HomePage> {
                   image: DecorationImage(
                       image: contacts[index].img != null ?
                           FileImage(File(contacts[index].img)) :
-                          AssetImage("images/person.svg")
+                          AssetImage("images/person.svg"),
+                    fit: BoxFit.cover //imagem arredondada
                   )
                 ),
               ),
@@ -98,10 +118,68 @@ class _HomePageState extends State<HomePage> {
       ),
       //Passando o contato clicado para tela de edição
       onTap: (){
-        _showContactPage(contact: contacts[index]);
+        _showOptions(context, index);
       },
     );
   }
+  
+  //Função para abrir menu de opções ao clicar no contato
+  void _showOptions(BuildContext context, int index){
+    showModalBottomSheet(
+        context: context,
+        builder: (context){
+          return BottomSheet(
+            onClosing: (){},  //Função para fechar.
+            builder: (context){
+              return Container(
+                padding: EdgeInsets.all(10.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,  //faz com q o menu aerto ocupe o minimo de espaço possivel
+                  children: <Widget>[
+                    Padding(
+                      child: FlatButton(
+                        child: Text("Ligar", style: TextStyle(color: Colors.blueAccent, fontSize: 20.0),
+                        ),
+                        onPressed: (){
+                          launch("tel:${contacts[index].phone}"); // funcao para abrir o telefone e ligar para o numero do contato
+                          Navigator.pop(context);  //fecha a a janela de opçoes
+                        },
+                      ),
+                    ),
+                    Padding(
+                      child: FlatButton(
+                        child: Text("Editar", style: TextStyle(color: Colors.blueAccent, fontSize: 20.0),
+                        ),
+                        onPressed: (){
+                          Navigator.pop(context);  //fecha a janela antes de mudar para tela de edição
+                          _showContactPage(contact: contacts[index]);
+                        },
+                      ),
+                    ),
+                    Padding(
+                      child: FlatButton(
+                        child: Text("Excluir", style: TextStyle(color: Colors.blueAccent, fontSize: 20.0),
+                        ),
+                        onPressed: (){
+                          helper.deleteContact(contacts[index].id); //remover o contata
+                          setState(() {
+                            contacts.removeAt(index);  //remove o contato da lista
+                            Navigator.pop(context);  //fecha a a janela de opçoes
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        }
+    );
+  }
+  
+  
+  
   // Função para chamar a tela de edição/criação de contatos(contact_page) e,
   // enviar e receber contatos
   void _showContactPage({Contact contact}) async{
@@ -112,7 +190,7 @@ class _HomePageState extends State<HomePage> {
       if(contact != null){
         await helper.updateContact(recContact);
       } else{
-        await helper.saveContact(recContact, contact);
+        await helper.saveContact(recContact);
       }
       _getAllContacts();
     }
@@ -123,6 +201,25 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         contacts = list;
       });
+    });
+  }
+
+  // Funcao para ordernar a lista de contatos
+  void _orderList(OrderOptions result){
+    switch(result){
+      case OrderOptions.orderaz:
+        contacts.sort((a, b){
+          return a.name.toLowerCase().compareTo(b.name.toLowerCase()); //compara nome A com nome B e ordena
+        });
+        break;
+      case OrderOptions.orderza:
+        contacts.sort((a, b){
+          return b.name.toLowerCase().compareTo(a.name.toLowerCase()); //compara nome B com nome A e ordena
+        });
+        break;
+    }
+    setState(() {
+
     });
   }
 }

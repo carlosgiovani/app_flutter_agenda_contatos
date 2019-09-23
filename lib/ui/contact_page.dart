@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:agenda_contatos/helpers/contact_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ContactPage extends StatefulWidget {
   //Declaração do contato
@@ -76,10 +77,19 @@ class _ContactPageState extends State<ContactPage> {
                     image: DecorationImage(
                         image: _editedContact.img != null ?
                         FileImage(File(_editedContact.img)) :
-                        AssetImage("images/person.svg")
+                        AssetImage("images/person.svg"),
+                      fit: BoxFit.cover //Imagem arredondada
                     ),
                   ),
                 ),
+                onTap: (){ //funcao para abrir a camera e tirar a foto do usuario
+                  ImagePicker.pickImage(source: ImageSource.camera).then((file){
+                    if(file == null) return;
+                    setState(() {
+                      _editedContact.img = file.path;
+                    });
+                  });
+                },
               ),
               TextField(
                 controller: _nameController,
@@ -144,9 +154,9 @@ class _ContactPageState extends State<ContactPage> {
           );
         }
       );
-      return Future.value(false);
+      return Future.value(false); //nao deixa sair automaticamente se modificou algo
     } else{
-      return Future.value(true);
+      return Future.value(true); //deixa sair automaticamente se nao modificou nada
     }
   }
 }
