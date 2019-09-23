@@ -48,7 +48,7 @@ class ContactHelper {
   }
 
   // Função para salvar os contatos
-  Future<Contact> saveContact(Contact, contact) async{
+  Future<Contact> saveContact(Contact contact) async{
     Database dbContact = await db;
     contact.id = await dbContact.insert(contactTable, contact.toMap());
     return contact;
